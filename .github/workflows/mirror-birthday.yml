@@ -34,6 +34,10 @@ jobs:
           wget --quiet --recursive --level=2 --page-requisites \
             --convert-links --adjust-extension --no-parent --no-host-directories \
             --directory-prefix=_mirror --timeout=30 --tries=3 "$SOURCE"
+          for n in $(seq -w 1 24); do
+            wget --quiet --timeout=30 --tries=3 -O "_mirror/assets/${n}.webp" "${SOURCE}assets/${n}.webp"
+          done
+          test -s _mirror/assets/24.webp
           test -s _mirror/index.html
           grep -qi 'Gunduuu' _mirror/index.html
           find _mirror -type f | head -30
@@ -52,13 +56,6 @@ jobs:
             git commit -m "Publish exact Gunduuu birthday website snapshot"
             git push origin HEAD:main
           }
-
-      - name: Attempt to enable GitHub Pages
-        shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh api --method POST "repos/${{ github.repository }}/pages" -f build_type=workflow 2>/dev/null || true
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
