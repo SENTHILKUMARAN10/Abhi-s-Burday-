@@ -1,0 +1,73 @@
+name: Mirror Gunduuu Birthday to GitHub Pages
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/mirror-birthday.yml'
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: birthday-pages
+  cancel-in-progress: false
+
+jobs:
+  mirror-and-publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Save the currently published birthday website
+        shell: bash
+        run: |
+          set -euo pipefail
+          SOURCE='https://gunduuu-birthday-oct23.dainty-grove-3706.chatgpt.site/'
+          mkdir -p _mirror
+          wget --quiet --recursive --level=2 --page-requisites \
+            --convert-links --adjust-extension --no-parent --no-host-directories \
+            --directory-prefix=_mirror --timeout=30 --tries=3 "$SOURCE"
+          test -s _mirror/index.html
+          grep -qi 'Gunduuu' _mirror/index.html
+          find _mirror -type f | head -30
+          cp -a _mirror/. ./
+          rm -rf _mirror
+          touch .nojekyll
+
+      - name: Commit mirrored files to this repository
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git diff --staged --quiet || {
+            git commit -m "Publish exact Gunduuu birthday website snapshot"
+            git push origin HEAD:main
+          }
+
+      - name: Attempt to enable GitHub Pages
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --method POST "repos/${{ github.repository }}/pages" -f build_type=workflow 2>/dev/null || true
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
