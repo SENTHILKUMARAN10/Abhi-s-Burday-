@@ -1,0 +1,33 @@
+.midnight-reveal {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  margin: 14px 0 0;
+  padding: 6px 13px;
+  border: 1px solid #d88da6;
+  border-radius: 999px;
+  background: #f8dce4;
+  color: #8e3e5f;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .35px;
+}
+
+.midnight-reveal.birthday-now {
+  background: #a04469;
+  color: #fff7f6;
+  border-color: #a04469;
+  animation: birthday-glow 1.8s ease-in-out infinite;
+}
+
+@keyframes birthday-glow {
+  50% { box-shadow: 0 0 0 7px #f6becb66; transform: translateY(-1px); }
+}
+
+@media (max-width: 600px) {
+  .midnight-reveal { margin-top: 10px; font-size: 10px; min-height: 29px; padding: 5px 11px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .midnight-reveal.birthday-now { animation: none; }
+}
